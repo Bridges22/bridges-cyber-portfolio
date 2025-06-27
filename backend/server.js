@@ -1,6 +1,7 @@
 const express = require('express');
 const bodyParser = require('body-parser');
 const nodemailer = require('nodemailer');
+const path = require('path');
 const cors = require('cors');
 
 const app = express();
@@ -11,35 +12,35 @@ app.use(cors());
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: true }));
 
+// Serve frontend files
+app.use(express.static(path.join(__dirname, '../frontend')));
+
 // Setup Nodemailer
 const transporter = nodemailer.createTransport({
   service: 'Gmail',
   auth: {
     user: 'bridges.cybersec@gmail.com',
     pass: 'rbmu rvkn eqpl fzcg',
-  },
+  }
 });
 
 // API to handle form submissions
 app.post('/submit-form', (req, res) => {
-  const { name, email, subject, message } = req.body;
+  const { name, email, subject, message, type } = req.body;
 
-  // Validate input data
-  if (!name || !email || !subject || !message) {
-    return res.status(400).send('All fields are required.');
+  if (!email) {
+    return res.status(400).send('Email is required.');
   }
 
-  // Setup email data
   const mailOptions = {
     from: 'bridges.cybersec@gmail.com',
     replyTo: email,
     to: 'bridges.cybersec@gmail.com',
-    subject: `Contact Form Submission: ${subject}`,
-    text: `Name: ${name}\nEmail: ${email}\nMessage: ${message}`,
+    subject: `Contact Form Submission: ${subject || 'No subject'} (${type || 'contact'})`,
+    text: `Name: ${name || 'N/A'}\nEmail: ${email}\nMessage: ${message || 'N/A'}`
   };
 
-  // Send email
-  transporter.sendMail(mailOptions, (error, info) => {
+  transporter.sendMail(mailOptions, (error) => {
     if (error) {
       console.error('Error while sending email:', error);
       return res.status(500).send('Error while sending email.');
@@ -48,7 +49,12 @@ app.post('/submit-form', (req, res) => {
   });
 });
 
+// Fallback route for SPA
+app.get('*', (req, res) => {
+  res.sendFile(path.join(__dirname, '../frontend/index.html'));
+});
+
 // Start the server
 app.listen(PORT, () => {
-  console.log(`Server is running on http://localhost:${PORT}`);
+  console.log(`Server is running on port ${PORT}`);
 });
