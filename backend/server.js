@@ -50,9 +50,10 @@ app.post('/submit-form', (req, res) => {
 });
 
 // Fallback route for SPA
-app.get('/*', (req, res) => {
+app.get('*', (req, res) => {
   res.sendFile(path.join(__dirname, '../frontend/index.html'));
 });
+
 
 // Start the server
 app.listen(PORT, () => {
