@@ -49,6 +49,36 @@ app.post('/submit-form', (req, res) => {
   });
 });
 
+//consultion form
+app.post('/submit-consultation', (req, res) => {
+  const { service, duration, date, time, notes } = req.body;
+
+  // You could also send yourself an email here:
+  const mailOptions = {
+    from: 'bridges.cybersec@gmail.com',
+    to: 'bridges.cybersec@gmail.com',
+    subject: `New Consultation Scheduled: ${service}`,
+    text: `
+New consultation scheduled:
+
+Service: ${service}
+Duration: ${duration}
+Date: ${date}
+Time: ${time}
+Notes: ${notes || 'None'}
+    `
+  };
+
+  transporter.sendMail(mailOptions, (error) => {
+    if (error) {
+      console.error('Error sending consultation email:', error);
+      return res.status(500).send('Error scheduling consultation.');
+    }
+    res.status(200).send('Consultation scheduled successfully.');
+  });
+});
+
+
 // Fallback route for SPA
 app.use((req, res) => {
   res.sendFile(path.join(__dirname, '../frontend/index.html'));
